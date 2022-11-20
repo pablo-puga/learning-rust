@@ -32,8 +32,9 @@ impl TaskList {
         }
 
         let content = fs::read_to_string(&file)?;
+        let lines = content.lines();
 
-        while let Some(line) = content.lines().next() {
+        for line in lines {
             let pieces: Vec<_> = line.split(';').collect();
 
             if pieces.len() != 3 {
@@ -88,7 +89,7 @@ impl TaskList {
     fn do_task(&mut self, id: TaskId) {
         let task = self.tasks.get_mut(&id);
         if task.is_none() {
-            let msg = format!("Unknown task with key {}", id.val());
+            let msg = format!("Unknown task with key {}", id);
             self.printer.warning(&msg);
             return;
         }
@@ -96,13 +97,13 @@ impl TaskList {
         let task = task.unwrap();
         task.r#do();
 
-        // Todo: Sync?
+        self.sync_to_file();
     }
 
     fn undo_task(&mut self, id: TaskId) {
         let task = self.tasks.get_mut(&id);
         if task.is_none() {
-            let msg = format!("Unknown task with key {}", id.val());
+            let msg = format!("Unknown task with key {}", id);
             self.printer.warning(&msg);
             return;
         }
@@ -110,7 +111,7 @@ impl TaskList {
         let task = task.unwrap();
         task.undo();
 
-        // Todo: Sync?
+        self.sync_to_file();
     }
 
     fn print_tasks(&self) {
@@ -119,7 +120,7 @@ impl TaskList {
 
         for id in ids {
             let task = self.tasks.get(id).unwrap();
-            let str = format!("{}\t{}\t{}", task.id().val(), task.status().val(), task.text());
+            let str = format!("{}\t{}\t\t{}", task.id(), task.status().val(), task.text());
             self.printer.notice(&str);
         }
     }
@@ -129,7 +130,10 @@ impl TaskList {
         let task = Task::new(id, text);
         self.tasks.insert(id, task);
 
-        // Todo: Sync?
+        let msg = format!("Task successfully created with id {}", id);
+        self.printer.notice(&msg);
+
+        self.sync_to_file();
     }
 
     fn get_next_task_id(&mut self) -> TaskId {
@@ -157,23 +161,23 @@ impl TaskList {
     fn delete_task(&mut self, id: TaskId) {
         match self.tasks.remove(&id) {
             Some(_) => {
-                let msg = format!("Task with key {} successfully deleted", id.val());
+                let msg = format!("Task with key {} successfully deleted", id);
                 self.printer.notice(&msg);
             },
             None => {
-                let msg = format!("Unknown task with key {}", id.val());
+                let msg = format!("Unknown task with key {}", id);
                 self.printer.warning(&msg);
             },
         }
 
-        // Todo: Sync?
+        self.sync_to_file();
     }
 
     fn sync_to_file(&self) {
         let mut file = match File::create(&self.file) {
             Ok(f) => f,
             Err(e) => {
-                let msg = format!("Error while sync to file '{}'", e);
+                let msg = format!("Error while opening file to sync '{}'", e);
                 self.printer.error(&msg);
                 return;
             }
@@ -185,9 +189,16 @@ impl TaskList {
         for id in ids {
             let task = self.tasks.get(id).unwrap();
             let str = format!("{}\n", task.to_csv());
-            file.write(str.as_bytes());
+            if let Err(e) = file.write(str.as_bytes()) {
+                let msg = format!("Error while printing task '{}' to file '{}'", task.text(), e);
+                self.printer.error(&msg);
+                return;
+            }
         }
 
-        file.flush();
+        if let Err(e) = file.flush() {
+            let msg = format!("Error while flushing buffer '{}'", e);
+            self.printer.error(&msg);
+        }
     }
 }

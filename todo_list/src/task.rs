@@ -1,3 +1,4 @@
+use std::fmt;
 use std::hash::Hash;
 
 #[derive(Debug)]
@@ -73,7 +74,7 @@ impl Task {
     }
 
     pub fn to_csv(&self) -> String {
-        format!("{},{},{}", self.id.val(), self.status.val(), self.text)
+        format!("{};{};{}", self.id.val(), self.status.val(), self.text)
     }
 }
 
@@ -121,5 +122,11 @@ impl PartialOrd for TaskId {
 impl Ord for TaskId {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.partial_cmp(other).unwrap()
+    }
+}
+
+impl fmt::Display for TaskId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)       
     }
 }
