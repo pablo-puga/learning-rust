@@ -122,38 +122,22 @@ pub fn build_command(input: &str) -> Result<Command, BuildError> {
                 Ok(Command::Add(parsed_arg))
             }
         },
-        "do" => match input.next() {
+        name @ ("do" | "undo" | "delete") => match input.next() {
             Some(str) => {
                 let id = str.parse::<usize>();
                 if id.is_err() {
                     Err(BuildError::NotUsizeTaskId)
                 } else {
-                    Ok(Command::Do(TaskId::new(id.ok().unwrap())))
+                    let command = match name {
+                        "do" => Command::Do(TaskId::new(id.ok().unwrap())),
+                        "undo" => Command::UnDo(TaskId::new(id.ok().unwrap())),
+                        "delete" => Command::Delete(TaskId::new(id.ok().unwrap())),
+                        _ => panic!("Should never be here"),
+                    };
+                    Ok(command)
                 }
             },
-            None => Err(BuildError::MissingArgument(String::from("do TASK_ID"))),
-        },
-        "undo" => match input.next() {
-            Some(str) => {
-                let id = str.parse::<usize>();
-                if id.is_err() {
-                    Err(BuildError::NotUsizeTaskId)
-                } else {
-                    Ok(Command::UnDo(TaskId::new(id.ok().unwrap())))
-                }
-            },
-            None => Err(BuildError::MissingArgument(String::from("undo TASK_ID"))),
-        },
-        "delete" => match input.next() {
-            Some(str) => {
-                let id = str.parse::<usize>();
-                if id.is_err() {
-                    Err(BuildError::NotUsizeTaskId)
-                } else {
-                    Ok(Command::Delete(TaskId::new(id.ok().unwrap())))
-                }
-            },
-            None => Err(BuildError::MissingArgument(String::from("delete TASK_ID"))),
+            None => Err(BuildError::MissingArgument(format!("{} TASK_ID", name))),
         },
         _ => Err(BuildError::UnknownCommand),
     }
