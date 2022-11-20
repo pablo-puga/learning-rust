@@ -1,2 +1,2 @@
 mod task;
-mod command;
+pub mod command;
