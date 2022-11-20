@@ -1,14 +1,26 @@
 use std::io;
 use std::io::Write;
+use std::process;
 
 use todo_list::command::Command;
 use todo_list::command::build_command;
 use todo_list::printer::Printer;
+use todo_list::task_list::TaskList;
 
 const TASK_FILE: &str = "tasks.csv";
 
 fn main() {
-    let printer = Printer::new();
+    let printer = Box::new(Printer::new());
+    let task_list = match TaskList::new(Box::clone(&printer), TASK_FILE) {
+        Ok(tl) => tl,
+        Err(e) => {
+            let msg = format!("Unable to create Task List due to previous error: {}", e);
+            printer.error(&msg);
+            process::exit(1);
+        }
+    };
+
+    dbg!(task_list);
 
     printer.notice("Welcome to the task manager!");
 

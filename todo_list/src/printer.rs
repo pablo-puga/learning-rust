@@ -1,6 +1,7 @@
 enum LogLevel {
     Notice,
     Error,
+    Warning,
 }
 
 impl LogLevel {
@@ -8,10 +9,12 @@ impl LogLevel {
         match self {
             Self::Notice => String::from(""),
             Self::Error => String::from("[\x1b[0;31mERROR\x1b[0m]"),
+            Self::Warning => String::from("[\x1b[0;33mWARNING\x1b[0m]"),
         }
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct Printer {}
 
 impl Printer {
@@ -33,6 +36,10 @@ impl Printer {
     }
 
     pub fn error(&self, msg: &str) {
+        self.print(LogLevel::Error, msg)
+    }
+
+    pub fn warning(&self, msg: &str) {
         self.print(LogLevel::Error, msg)
     }
 }
