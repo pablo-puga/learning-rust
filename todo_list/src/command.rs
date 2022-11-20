@@ -9,6 +9,7 @@ pub enum Command {
     Do(TaskId),
     UnDo(TaskId),
     Delete(TaskId),
+    Exit,
 }
 
 /// Any possible [Command] building error
@@ -139,6 +140,7 @@ pub fn build_command(input: &str) -> Result<Command, BuildError> {
             },
             None => Err(BuildError::MissingArgument(format!("{} TASK_ID", name))),
         },
+        "exit" => Ok(Command::Exit),
         _ => Err(BuildError::UnknownCommand),
     }
 }
@@ -291,6 +293,15 @@ mod test {
 
         let result = build_command("this is not a delete command");
         assert_ne!(result, Ok(Command::Delete(TaskId::new(1))));
+    }
+
+    #[test]
+    fn should_create_exit_command() {
+        let result = build_command("exit  ");
+        assert_eq!(result, Ok(Command::Exit));
+
+        let result = build_command("this is not an exit command");
+        assert_ne!(result, Ok(Command::Exit));
     }
 
     #[test]
