@@ -11,7 +11,7 @@ const TASK_FILE: &str = "tasks.csv";
 
 fn main() {
     let printer = Box::new(Printer::new());
-    let task_list = match TaskList::new(Box::clone(&printer), TASK_FILE) {
+    let mut task_list = match TaskList::new(Box::clone(&printer), TASK_FILE) {
         Ok(tl) => tl,
         Err(e) => {
             let msg = format!("Unable to create Task List due to previous error: {}", e);
@@ -19,8 +19,6 @@ fn main() {
             process::exit(1);
         }
     };
-
-    dbg!(task_list);
 
     printer.notice("Welcome to the task manager!");
 
@@ -46,7 +44,7 @@ fn main() {
             break 'main;
         }
 
-        dbg!(command);
+        task_list.execute(command);
     }
 
     printer.notice("Good bye!");

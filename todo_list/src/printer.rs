@@ -40,7 +40,7 @@ impl Printer {
     }
 
     pub fn warning(&self, msg: &str) {
-        self.print(LogLevel::Error, msg)
+        self.print(LogLevel::Warning, msg)
     }
 }
 
