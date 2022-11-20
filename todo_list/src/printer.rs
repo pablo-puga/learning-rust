@@ -7,7 +7,7 @@ impl LogLevel {
     fn prefix(&self) -> String {
         match self {
             Self::Notice => String::from(""),
-            Self::Error => String::from("[ERROR]"),
+            Self::Error => String::from("[\x1b[0;31mERROR\x1b[0m]"),
         }
     }
 }
